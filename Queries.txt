@@ -136,6 +136,10 @@ credentials 'aws_iam_role=arn:aws:iam::623133305205:role/myRedshiftRole'
 ignoreheader 1
 delimiter ',' region 'eu-central-1';
 
+copy cancer from 's3://sink-data-test/cancer/dwh/' 
+credentials 'aws_iam_role=arn:aws:iam::623133305205:role/myRedshiftRole' 
+format as parquet;
+
 select * from cancer
 
 unload ('SELECT 
@@ -175,3 +179,42 @@ GROUP BY diagnosis
 ')
 to 's3://sink-data-test/cancer/redshift-unload/'
 credentials 'aws_iam_role=arn:aws:iam::623133305205:role/myRedshiftRole' 
+
+unload ('SELECT 
+ diagnosis,
+ AVG(radius_mean) radius_mean,
+ AVG(texture_mean) texture_mean,
+ AVG(perimeter_mean) perimeter_mean,
+ AVG(area_mean) area_mean,
+ AVG(smoothness_mean) smoothness_mean,
+ AVG(compactness_mean) compactness_mean,
+ AVG(concavity_mean) concavity_mean,
+ AVG(concave_points_mean) concave_points_mean,
+ AVG(symmetry_mean) symmetry_mean,
+ AVG(fractal_dimension_mean) fractal_dimension_mean,
+ AVG(radius_se) radius_se,
+ AVG(texture_se) texture_se,
+ AVG(perimeter_se) perimeter_se,
+ AVG(area_se) area_se,
+ AVG(smoothness_se) smoothness_se,
+ AVG(compactness_se) compactness_se,
+ AVG(concavity_se) concavity_se,
+ AVG(concave_points_se) concave_points_se,
+ AVG(symmetry_se) symmetry_se,
+ AVG(fractal_dimension_se) fractal_dimension_se,
+ AVG(radius_worst) radius_worst,
+ AVG(texture_worst) texture_worst,
+ AVG(perimeter_worst) perimeter_worst,
+ AVG(area_worst) area_worst,
+ AVG(smoothness_worst) smoothness_worst,
+ AVG(compactness_worst) compactness_worst,
+ AVG(concavity_worst) concavity_worst,
+ AVG(concave_points_worst) concave_points_worst,
+ AVG(symmetry_worst) symmetry_worst,
+ AVG(fractal_dimension_worst) fractal_dimension_worst
+FROM cancer
+GROUP BY diagnosis
+')
+to 's3://sink-data-test/cancer/redshift-unload/parquet'
+credentials 'aws_iam_role=arn:aws:iam::623133305205:role/myRedshiftRole' 
+format parquet

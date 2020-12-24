@@ -81,4 +81,16 @@ transformer = S3FileTransformOperator(
     depends_on_past=False
 )
 
-drop_id_column >> transformer
+to_parquet = S3FileTransformOperator(
+    task_id='to_parquet',
+    source_s3_key='s3://sink-data-test/cancer/stg/{{ task_instance.xcom_pull(task_ids="drop_id_column") }}.csv',
+    dest_s3_key='s3://sink-data-test/cancer/dwh/cancer.parquet',
+    transform_script='/home/baruch/airflow/dags/transformations/to_parquet.py',
+    source_aws_conn_id='my_conn_S3',
+    dest_aws_conn_id='my_conn_S3',
+    replace=True,
+    dag=dag,
+    depends_on_past=False
+)
+
+drop_id_column >> [transformer, to_parquet]
