@@ -218,3 +218,134 @@ GROUP BY diagnosis
 to 's3://sink-data-test/cancer/redshift-unload/parquet'
 credentials 'aws_iam_role=arn:aws:iam::623133305205:role/myRedshiftRole' 
 format parquet
+
+-------------------
+redshift spectrum
+-------------------
+
+create external schema spectrum 
+from data catalog 
+database 'spectrumdb' 
+iam_role 'arn:aws:iam::623133305205:role/mySpectrumRole'
+create external database if not exists;
+
+CREATE EXTERNAL TABLE spectrum.data (
+  id varchar(9),
+  diagnosis varchar(1),
+  radius_mean float,
+  texture_mean float,
+  perimeter_mean float,
+  area_mean float,
+  smoothness_mean float,
+  compactness_mean float,
+  concavity_mean float,
+  concave_points_mean float,
+  symmetry_mean float,
+  fractal_dimension_mean float,
+  radius_se float,
+  texture_se float,
+  perimeter_se float,
+  area_se float,
+  smoothness_se float,
+  compactness_se float,
+  concavity_se float,
+  concave_points_se float,
+  symmetry_se float,
+  fractal_dimension_se float,
+  radius_worst float,
+  texture_worst float,
+  perimeter_worst float,
+  area_worst float,
+  smoothness_worst float,
+  compactness_worst float,
+  concavity_worst float,
+  concave_points_worst float,
+  symmetry_worst float,
+  fractal_dimension_worst float 
+)
+row format delimited
+fields terminated by ','
+LOCATION 's3://sink-data-test/cancer/mrr'
+table properties ('has_encrypted_data'='false', 'skip.header.line.count'='1');
+
+-- parquet on an existing database on athena
+
+create external schema spectrum_cancer
+from data catalog 
+database 'cancer'
+iam_role 'arn:aws:iam::623133305205:role/mySpectrumRole'
+create external database if not exists;
+
+CREATE EXTERNAL TABLE spectrum_cancer.data_dwh(
+  diagnosis varchar(1),
+  radius_mean float,
+  texture_mean float,
+  perimeter_mean float,
+  area_mean float,
+  smoothness_mean float,
+  compactness_mean float,
+  concavity_mean float,
+  concave_points_mean float,
+  symmetry_mean float,
+  fractal_dimension_mean float,
+  radius_se float,
+  texture_se float,
+  perimeter_se float,
+  area_se float,
+  smoothness_se float,
+  compactness_se float,
+  concavity_se float,
+  concave_points_se float,
+  symmetry_se float,
+  fractal_dimension_se float,
+  radius_worst float,
+  texture_worst float,
+  perimeter_worst float,
+  area_worst float,
+  smoothness_worst float,
+  compactness_worst float,
+  concavity_worst float,
+  concave_points_worst float,
+  symmetry_worst float,
+  fractal_dimension_worst float 
+)
+stored as parquet
+LOCATION 's3://sink-data-test/cancer/dwh';
+
+unload ('SELECT 
+ diagnosis,
+ AVG(radius_mean) radius_mean,
+ AVG(texture_mean) texture_mean,
+ AVG(perimeter_mean) perimeter_mean,
+ AVG(area_mean) area_mean,
+ AVG(smoothness_mean) smoothness_mean,
+ AVG(compactness_mean) compactness_mean,
+ AVG(concavity_mean) concavity_mean,
+ AVG(concave_points_mean) concave_points_mean,
+ AVG(symmetry_mean) symmetry_mean,
+ AVG(fractal_dimension_mean) fractal_dimension_mean,
+ AVG(radius_se) radius_se,
+ AVG(texture_se) texture_se,
+ AVG(perimeter_se) perimeter_se,
+ AVG(area_se) area_se,
+ AVG(smoothness_se) smoothness_se,
+ AVG(compactness_se) compactness_se,
+ AVG(concavity_se) concavity_se,
+ AVG(concave_points_se) concave_points_se,
+ AVG(symmetry_se) symmetry_se,
+ AVG(fractal_dimension_se) fractal_dimension_se,
+ AVG(radius_worst) radius_worst,
+ AVG(texture_worst) texture_worst,
+ AVG(perimeter_worst) perimeter_worst,
+ AVG(area_worst) area_worst,
+ AVG(smoothness_worst) smoothness_worst,
+ AVG(compactness_worst) compactness_worst,
+ AVG(concavity_worst) concavity_worst,
+ AVG(concave_points_worst) concave_points_worst,
+ AVG(symmetry_worst) symmetry_worst,
+ AVG(fractal_dimension_worst) fractal_dimension_worst
+FROM spectrum_cancer.data
+GROUP BY diagnosis
+')
+to 's3://sink-data-test/cancer/redshift-unload/spectrum'
+credentials 'aws_iam_role=arn:aws:iam::623133305205:role/mySpectrumRole' 
