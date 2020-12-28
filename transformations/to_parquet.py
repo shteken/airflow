@@ -8,5 +8,4 @@ input_file = sys.argv[1]
 
 
 df = pd.read_csv(input_file)
-calculated_df = df.groupby(['diagnosis']).mean()
-calculated_df.to_csv(output)
+df.to_parquet(output)
