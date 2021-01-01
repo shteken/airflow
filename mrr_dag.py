@@ -2,6 +2,7 @@ import datetime
 
 import airflow
 from airflow.contrib.operators.s3_copy_object_operator import S3CopyObjectOperator
+from airflow.operators.dagrun_operator import TriggerDagRunOperator
 
 default_args = {
     'owner': 'Baruch',
@@ -30,4 +31,11 @@ copy_data = S3CopyObjectOperator(
     depends_on_past=False
 )
 
-copy_data
+run_stg_dag = TriggerDagRunOperator(
+    task_id='run_stg_dag',
+    trigger_dag_id = 'stg_dag',
+    dag=dag,
+    depends_on_past=False
+
+)
+copy_data >> run_stg_dag
